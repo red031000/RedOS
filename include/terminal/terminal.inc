@@ -1,0 +1,2 @@
+extern terminal_init
+extern terminal_print

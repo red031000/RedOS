@@ -1,0 +1,2 @@
+extern multiboot_store_info
+extern multiboot_check_magic
