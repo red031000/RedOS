@@ -38,12 +38,12 @@ dd MULTIBOOT_FLAGS
 dd MULTIBOOT_CHECKSUM
 
 ; TODO: Implement multiboot memory handling functions
-section .boot.bss
+section .boot.bss nobits
 align 4
 multiboot_info:
     resb 116
 
-section .boot.text
+section .boot.text exec
 
 bits 32
 

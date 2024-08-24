@@ -8,7 +8,7 @@
 ; protective shield
 bits 32
 
-section .boot.bss
+section .boot.bss nobits
 
 align 4
 cpu_features:
@@ -20,7 +20,7 @@ cpu_vendor_info:
 msr_feature_control_set:
     resb 1 ; keep track of whether we've set this
 
-section .boot.text
+section .boot.text exec
 
 global init_cpu_for_long_mode
 init_cpu_for_long_mode:

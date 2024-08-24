@@ -100,7 +100,7 @@ second_kernel_page_table:
 
 bits 32
 
-section .boot.text
+section .boot.text exec
 
 global paging_init_long
 paging_init_long:

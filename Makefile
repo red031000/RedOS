@@ -16,7 +16,7 @@ OBJECTS = $(SOURCES:%.asm=%.o)
 INCLUDEDIRS = $(call uniq, $(sort $(dir $(INCLUDES))))
 
 # we use .boot.bss, it's a bss section, it's marked as such, you don't need to scream at us that it's not bss
-NASMFLAGS = -felf64 $(foreach dir, $(INCLUDEDIRS), -I $(dir)) -w-zeroing
+NASMFLAGS = -felf64 -g -F dwarf $(foreach dir,$(INCLUDEDIRS),-I $(dir)) -w-zeroing
 
 .PHONY: all clean
 

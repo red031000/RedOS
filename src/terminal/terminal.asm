@@ -59,6 +59,7 @@ terminal_write:
     neg rax
     jnc .end
     sub rbx, rax ; add positive rax, pointing at the end of the string, we work backwards
+    xor rsi, rsi ; offset
 
     movzx rcx, word[terminal_pos]
     movzx rdx, cl ; cl is the column
@@ -73,27 +74,30 @@ terminal_write:
     cmp dl, 0xa ; check for newline
     je .newline
 
-    mov word[rdi + 2 * rax], dx ; write the character to the correct position
+    lea r8, [rdi + 2 * rsi]
+    mov word[2 * rax + r8], dx ; write the character to the correct position
 
     inc rcx ; increment the terminal column
     cmp cl, VGA_WIDTH
     jne .check
+
+    cmp byte[rbx + rax + 1], 0xa
+    je .check ; if the next character is a newline, don't wrap
 
     ; wrap to the next line
     add rcx, 0x100 - VGA_WIDTH
     jmp .height_check
 
 .newline:
-    mov rdx, rcx
-
+    movzx r8, cl
+    sub rsi, r8
+    dec rsi ; account for \n
     ; clear the entire row
     or rcx, 0xff
     inc rcx
 
-    ; calculate the difference
-    sub rdx, rcx
-    neg rdx
-    lea rdi, [rdi + rdx * 2] ; add the difference to edi
+    ; add to the row
+    add rdi, VGA_WIDTH * 2
 
 .height_check:
     cmp ch, VGA_HEIGHT

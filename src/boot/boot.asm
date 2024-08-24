@@ -15,7 +15,7 @@
 ; We are in protected mode here
 bits 32
 
-section .boot.text
+section .boot.text exec
 
 global _start_32
 _start_32:
@@ -81,7 +81,10 @@ _start_64:
 
     call terminal_init
 
-    mov rbx, hello_world ; load address of hello_world string
+    mov rbx, redos ; os identifier
+    call terminal_print ; print os identifier
+
+    mov rbx, amogus ; amogus
     call terminal_print ; print hello_world string
 
     ; infinite loop
@@ -92,4 +95,17 @@ _start_64:
 
 section .rodata
 hello_world:
-    db "Hello, world!", 0xA, 0
+;    db "Hello, world!", 0xA, 0
+
+redos:
+    db "====================================RedOS v1====================================", 0xA, 0x0
+
+amogus:
+    db "..................", 0xA
+    db "......AMONGUS.....", 0xA
+    db "....UNA.....M.....", 0xA
+    db "....SGO.....N.....", 0xA
+    db "....MOGUSAMON.....", 0xA
+    db "......G.....U.....", 0xA
+    db "......SA....MO....", 0xA
+    db "When the OS is sus", 0xA, 0x0
