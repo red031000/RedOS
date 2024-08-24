@@ -3,6 +3,7 @@ $(error TARGET is not set)
 endif
 
 rwildcard=$(foreach d,$(wildcard $(1:=/*)),$(call rwildcard,$d,$2) $(filter $(subst *,%,$2),$d))
+uniq = $(if $1,$(firstword $1) $(call uniq,$(filter-out $(firstword $1),$1)))
 
 LIBSRCS = $(call rwildcard, lib, *.asm)
 
@@ -12,7 +13,10 @@ INCLUDES = $(call rwildcard, include, *.inc) $(LIBINCLUDES)
 SOURCES = $(call rwildcard, src, *.asm) $(LIBSRCS)
 OBJECTS = $(SOURCES:%.asm=%.o)
 
-NASMFLAGS = -felf64 $(foreach dir, $(dir $(INCLUDES)), -I $(dir))
+INCLUDEDIRS = $(call uniq, $(sort $(dir $(INCLUDES))))
+
+# we use .boot.bss, it's a bss section, it's marked as such, you don't need to scream at us that it's not bss
+NASMFLAGS = -felf64 $(foreach dir, $(INCLUDEDIRS), -I $(dir)) -w-zeroing
 
 .PHONY: all clean
 
@@ -26,7 +30,7 @@ iso: kernel
 	grub-mkrescue -o RedOS.iso isodir
 
 kernel: $(OBJECTS)
-	$(TARGET)-ld -o kernel -T linker.ld $(OBJECTS)
+	$(TARGET)-ld -o kernel -T linker.ld -Map kernel.map $(OBJECTS)
 
 %.o: %.asm
 	nasm $(NASMFLAGS) $< -o $@

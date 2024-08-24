@@ -5,8 +5,8 @@
 
 ; Stack definition and functions
 
-; We are in protected mode here
-bits 32
+; long modee
+bits 64
 
 global stack_bottom
 global stack_top

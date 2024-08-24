@@ -1,1 +1,1 @@
-extern strlen_32
+extern strlen

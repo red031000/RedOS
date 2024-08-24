@@ -4,14 +4,15 @@
 ; -------------------------------------
 
 %include "strlen.inc"
+%include "macros.inc"
 
-bits 32
+bits 64
 
 ; Basic terminal using VGA text mode
 
 VGA_WIDTH equ 80
 VGA_HEIGHT equ 25
-TERMINAL_BUFFER equ 0xB8000
+TERMINAL_BUFFER equ PHYS_TO_VIRT64(0xB8000)
 
 section .bss
 align 4
@@ -26,30 +27,25 @@ section .text
 align 4
 global terminal_init
 terminal_init:
-    push ecx
-    push eax
-
     ; terminal setup
-    xor eax, eax
+    xor rax, rax
     mov word[terminal_pos], ax
 
     ; fill the screen with black spaces, also use some values to init
-    mov eax, 0x0F200F20
+    mov rax, 0x0F200F200F200F20
     mov byte[terminal_color], ah ; higher 8 bits of ax
 
-    mov edi, TERMINAL_BUFFER
+    mov rdi, TERMINAL_BUFFER
 
-    mov ecx, VGA_WIDTH * VGA_HEIGHT / 2
-    rep stosd
+    mov rcx, VGA_WIDTH * VGA_HEIGHT / 4
+    rep stosq
 
-    pop eax
-    pop ecx
     ret
 
 align 4
 global terminal_print
 terminal_print:
-    call strlen_32
+    call strlen
     call terminal_write
 
     ret
@@ -57,66 +53,59 @@ terminal_print:
 align 4
 global terminal_write
 terminal_write:
-    ; eax is strlen
-    ; ebx is string address
+    ; rax is strlen
+    ; rbx is string address
     ; we use negatives here as it allows only one increment
-    neg eax
+    neg rax
     jnc .end
-    sub ebx, eax ; add positive eax, pointing at the end of the string, we work backwards
+    sub rbx, rax ; add positive rax, pointing at the end of the string, we work backwards
 
-    push ecx
-    push edx
-    push edi
-
-    movzx ecx, word[terminal_pos]
-    movzx edx, cl ; cl is the column
+    movzx rcx, word[terminal_pos]
+    movzx rdx, cl ; cl is the column
     movzx edi, ch ; ch is the row
-    imul edi, edi, VGA_WIDTH * 2
-    sub edx, eax ; move the row to the end of the string, basically adding strlen to the current row
-    lea edi, [TERMINAL_BUFFER + edi + edx * 2] ; this points to the end of the string
+    imul rdi, rdi, VGA_WIDTH * 2
+    sub rdx, rax ; move the row to the end of the string, basically adding strlen to the current row
+    lea rdi, [TERMINAL_BUFFER + rdi + rdx * 2] ; this points to the end of the string
     mov dh, byte[terminal_color]
 
 .loop:
-    mov dl, [ebx + eax] ; load the current character, the addition is actually a subtraction cause negative
+    mov dl, byte[rbx + rax] ; load the current character, the addition is actually a subtraction cause negative
     cmp dl, 0xa ; check for newline
     je .newline
 
-    mov [edi + 2 * eax], dx ; write the character to the correct position
+    mov word[rdi + 2 * rax], dx ; write the character to the correct position
 
-    inc ecx ; increment the terminal column
+    inc rcx ; increment the terminal column
     cmp cl, VGA_WIDTH
     jne .check
 
     ; wrap to the next line
-    add ecx, 0x100 - VGA_WIDTH
+    add rcx, 0x100 - VGA_WIDTH
     jmp .height_check
 
 .newline:
-    mov edx, ecx
+    mov rdx, rcx
 
     ; clear the entire row
-    or ecx, 0xff
-    inc ecx
+    or rcx, 0xff
+    inc rcx
 
     ; calculate the difference
-    sub edx, ecx
-    neg edx
-    lea edi, [edi + edx * 2] ; add the difference to edi
+    sub rdx, rcx
+    neg rdx
+    lea rdi, [rdi + rdx * 2] ; add the difference to edi
 
 .height_check:
     cmp ch, VGA_HEIGHT
     jne .check
-    sub edi, 2 * VGA_WIDTH * VGA_HEIGHT
-    xor ecx, ecx
+    sub rdi, 2 * VGA_WIDTH * VGA_HEIGHT
+    xor rcx, rcx
 
 .check:
-    inc eax ; add 1 to neg strlen
+    inc rax ; add 1 to neg strlen
     jnz .loop
 
     mov word[terminal_pos], cx
 
-    pop edi
-    pop edx
-    pop ecx
 .end:
     ret

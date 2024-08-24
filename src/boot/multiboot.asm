@@ -3,6 +3,8 @@
 ; Copyright (c) red031000 2024-08-17
 ; -------------------------------------
 
+%include "macros.inc"
+
 ; Multiboot 1 header and functions
 ; TODO: Upgrade to multiboot 2, use proper memory mapping for the kernel
 
@@ -36,19 +38,19 @@ dd MULTIBOOT_FLAGS
 dd MULTIBOOT_CHECKSUM
 
 ; TODO: Implement multiboot memory handling functions
-section .bss
+section .boot.bss
 align 4
 multiboot_info:
     resb 116
 
-section .text
+section .boot.text
 
 bits 32
 
 global multiboot_store_info
 multiboot_store_info:
     ; Store multiboot info in multiboot_info
-    mov edi, multiboot_info
+    mov edi, VIRT64_TO_PHYS(multiboot_info)
     mov esi, ebx
     mov ecx, 116
     rep movsb

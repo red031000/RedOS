@@ -1,3 +1,6 @@
 *.o
 *.iso
+*.map
 kernel
+isodir/
+exception.txt

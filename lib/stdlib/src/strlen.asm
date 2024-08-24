@@ -5,23 +5,23 @@
 
 ; strlen implementation
 
-bits 32
+bits 64
 
 section .text
 
 ; TODO - use vectors, if MMX/SSE/SSE2/AVX is installed use vpcmpeqb and vpmovmskb
-global strlen_32
-strlen_32:
-    ; String address should be in ebx already
+global strlen
+strlen:
+    ; String address should be in rbx already
 
-    ; Initialise counter in eax
-    mov eax, -1
+    ; Initialise counter in rax
+    mov rax, -1
 
     ; Loop through string
 .loop:
-    cmp byte[ebx + eax + 1], 0
+    cmp byte[rbx + rax + 1], 0
     ; lea to not overwrite flags
-    lea eax, [eax + 1]
+    lea rax, [rax + 1]
     jne .loop
 
     ret

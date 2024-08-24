@@ -1,1 +1,3 @@
-extern paging_init32
+extern paging_init_long
+extern paging_higher_setup
+extern unmap_lower_half
