@@ -4,7 +4,6 @@ KERNEL_HIGHER_OFFSET = 0xFFFFFFFF80000000;
 
 SECTIONS
 {
-    /* TODO: adjust this to use multiboot 2, we need to adjust it for a higher half kernel anyway */
     . = 2M;
 
     .boot.text ALIGN(4K) :

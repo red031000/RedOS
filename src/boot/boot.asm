@@ -23,6 +23,8 @@ _start_32:
     ; no stack, no nothing, we gotta set everything up, EAX contains multiboot magic, EBX has the
     ; multiboot info pointer, we should probably save this in multiboot.asm
 
+    cli ; disable interrupts
+
     ; Before anything, set up the stack - eventually we'll want to make the stack dynamic, it's
     ; only 16kb for now
     mov esp, VIRT64_TO_PHYS(stack_top)
