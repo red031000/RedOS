@@ -10,6 +10,7 @@
 %include "paging.inc"
 %include "gdt.inc"
 %include "multiboot.inc"
+%include "features.inc"
 %include "terminal.inc"
 
 ; We are in protected mode here
@@ -19,7 +20,7 @@ section .boot.text exec
 
 global _start_32
 _start_32:
-    ; Bootloader has passed us here, we're in protected mode, interrupts disabled, paging disabled
+    ; Bootloader has passed us here, we're in protected mode, interrupts disabled, pagingdisabled 
     ; no stack, no nothing, we gotta set everything up, EAX contains multiboot magic, EBX has the
     ; multiboot info pointer, we should probably save this in multiboot.asm
 
@@ -79,7 +80,10 @@ _start_64:
     ; unmap the lower half
     call unmap_lower_half
 
-    ; TODO here: enable floating point instructions, ISEs, IDT
+    ; init CPU features
+    ; call cpu_features_init
+
+    ; TODO here: IDT
 
     call terminal_init
 
