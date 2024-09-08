@@ -9,6 +9,7 @@ bits 64
 
 section .text
 
+global ConvertIntegerToHexString
 ConvertIntegerToHexString:
     ; in: rax = integer value
     ; out: xmm0 = hexadecimal value (big endian, for printing)

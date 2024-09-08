@@ -37,7 +37,7 @@ terminal_init:
 
     mov rdi, TERMINAL_BUFFER
 
-    mov rcx, VGA_WIDTH * VGA_HEIGHT / 4
+    mov ecx, VGA_WIDTH * VGA_HEIGHT / 4
     rep stosq
 
     ret

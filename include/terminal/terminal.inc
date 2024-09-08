@@ -1,2 +1,3 @@
 extern terminal_init
 extern terminal_print
+extern terminal_write

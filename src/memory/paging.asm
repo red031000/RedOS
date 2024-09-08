@@ -58,9 +58,10 @@ first_page_directory_pointer_table:
 ; 62:52 - available for kernel use
 ; 52:12 - address
 ; 11 - HLAT restart, normally available for kernel use
-; 10:8 - avaiable for kernel use - bit 8 DO NOT FREE
-; 7 - page size (we'll use 4kb pages), must be 0
-; 6 - available for kernel use - mark as alloced
+; 10:9 - available for kernel use - bit 10 DO NOT FREE, bit 9 - mark as alloced
+; 8 - global - determines whether translation is global, only if page size is 2mb, otherwise available for kernel use
+; 7 - page size, 0 for 4kb pages, 1 for 2mb pages - kernel uses 2mb pages, user uses 4kb
+; 6 - available for kernel use - also dirty bit
 ; 5 - accessed - set by CPU, cleared on free
 ; 4 - cache disabled
 ; 3 - write through
@@ -72,7 +73,7 @@ align 4096
 first_page_directory:
     resq 512
 
-; page table entry format:
+; page table entry format - no tables used, we use 2mb pages in directory level:
 ; 63 - execute disable
 ; 62:59 - protection key, requres CR4.PKE or CR4.PKS, normally available for kernel use
 ; 58:52 - available for kernel use
@@ -89,14 +90,6 @@ first_page_directory:
 ; 1 - read/write
 ; 0 - present
 
-align 4096
-first_kernel_page_table:
-    resq 512
-
-; IDIOT - a page table is 2MB now, because of PGE, so we need a second one
-align 4096
-second_kernel_page_table:
-    resq 512
 
 bits 32
 
@@ -119,31 +112,13 @@ paging_init_long:
     ; add directory pointer table to page map level 4
     or dword[VIRT64_TO_PHYS(page_map_level_4)], VIRT64_TO_PHYS(first_page_directory_pointer_table) ; we can do this as it's all under 4gb
 
+    ; TODO: text and rodata should not be writable
     ; setup page directory
-    mov dword[VIRT64_TO_PHYS(first_page_directory)], 0x143 ; alloced, do not free, present, read/write
-    mov dword[VIRT64_TO_PHYS(first_page_directory) + 8], 0x143 ; alloced, do not free, present, read/write
+    mov dword[VIRT64_TO_PHYS(first_page_directory)], 0x683 ; alloced, do not free, present, read/write, 2mb pages
+    mov dword[VIRT64_TO_PHYS(first_page_directory) + 8], 0x200683 ; alloced, do not free, present, read/write, 2mb pages
 
     ; add directory to directory pointer table
     or dword[VIRT64_TO_PHYS(first_page_directory_pointer_table)], VIRT64_TO_PHYS(first_page_directory) ; same as above
-
-    ; setup page table - first table is static, rest will be allocated
-    mov edi, VIRT64_TO_PHYS(first_kernel_page_table)
-    xor ecx, ecx
-
-.loop:
-    mov eax, ecx
-    shl eax, 12
-
-    ; TODO: text and rodata should not be writable
-    or eax, 0x607 ; present, read/write, alloced, do not free
-    mov dword[edi + ecx * 8], eax ; add page to table
-    inc ecx
-    cmp ecx, 1024
-    jle .loop
-
-    ; add table to directory
-    or dword[VIRT64_TO_PHYS(first_page_directory)], VIRT64_TO_PHYS(first_kernel_page_table)
-    or dword[VIRT64_TO_PHYS(first_page_directory) + 8], VIRT64_TO_PHYS(second_kernel_page_table)
 
     ; set LME bit in EFER
     mov ecx, 0xC0000080
@@ -200,8 +175,7 @@ global unmap_lower_half
 unmap_lower_half:
     ; unmap the old mapping
 
-    mov rcx, page_map_level_4
-    mov qword[rcx], 0x2
+    mov qword[page_map_level_4], 0x2
     mov qword[first_page_directory_pointer_table], 0x2
 
     mov rcx, VIRT64_TO_PHYS(page_map_level_4)

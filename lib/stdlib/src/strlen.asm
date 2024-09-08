@@ -9,9 +9,19 @@ bits 64
 
 section .text
 
-; TODO - use vectors, if MMX/SSE/SSE2/AVX is installed use vpcmpeqb and vpmovmskb
 global strlen
 strlen:
+    xor eax, eax
+.loop:
+    vlddqu xmm0, [rbx + rax]
+    ; this is some ax6 magic, thanks
+    vpcmpistri xmm0, xmm0, 0x38
+    lea rax, [rax + rcx]
+    jnc .loop
+    ret
+
+global strlen_slow
+strlen_slow:
     ; String address should be in rbx already
 
     ; Initialise counter in rax

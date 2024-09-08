@@ -80,12 +80,16 @@ _start_64:
     ; unmap the lower half
     call unmap_lower_half
 
+    ; init terminal
+    call terminal_init
+
+    ; check for avx first
+    call avx_check
+
     ; init CPU features
-    ; call cpu_features_init
+    call cpu_features_init
 
     ; TODO here: IDT
-
-    call terminal_init
 
     mov rbx, redos ; os identifier
     call terminal_print ; print os identifier

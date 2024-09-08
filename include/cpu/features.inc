@@ -1,1 +1,2 @@
 extern cpu_features_init
+extern avx_check

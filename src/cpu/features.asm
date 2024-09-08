@@ -3,19 +3,28 @@
 ; Copyright (c) red031000 2024-08-20
 ; -------------------------------------
 
+%include "strlen.inc"
+%include "terminal.inc"
+
 ; CPU feature detection and enabling
 
 ; long mode
 bits 64
 
-section .bss
+section .rodata
 
 align 4
-cpu_features:
-    resd 2 ; 2 for now, might need more
+avx_not_detected:
+    db "AVX not detected! RedOS needs AVX to function, ABORT", 0xA, 0x0
 
+section .bss
+
+align 16
 cpu_vendor_info:
     resd 4 ; 3 for vendor string, 1 for max eax
+
+cpu_features:
+    resd 2 ; 2 for now, might need more
 
 msr_feature_control_set:
     resb 1 ; keep track of whether we've set this
@@ -108,7 +117,8 @@ cpu_features_init:
     ; we can enable VMX, but only for intel cpus, AMD doesn't have VMX
 
     vmovdqa xmm1, [cpu_vendor_info]
-    vpsrldq xmm1, xmm1, 4
+    xor eax, eax
+    vpinsrd xmm1, eax, 3
     vpcmpeqb xmm0, xmm1, [AuthenticAMD]
     vpmovmskb eax, xmm0
     inc ax
@@ -208,7 +218,44 @@ cpu_features_init:
 
 .speedstep_end:
 
+    ; SSSE3 is already enabled
+    ; CNXT-ID is set by the BIOS
+    ; don't care about SDBG
+    ; FMA is already enabled
+    ; CMPXCHG16B doesn't need anything done
+    ; don't need to do anything for xTPR
+    ; don't need PDCM
 
+    ; we want PCID, but it's new and not many processors support it
+
+    ; AMD supports PCID, however the documentation does not have the correct bit indicated in ECX
+    ; as such we're putting it behind a manufacturer check
+    ; xmm0 should already have the comparison bits set
+    vpmovmskb eax, xmm0
+    inc ax
+    jz .pcid_end
+
+    ; check if PCID is supported
+    bt rdx, 17
+    jnc .pcid_end
+
+    mov rax, cr4
+    or rax, 0x20000
+    mov cr4, rax
+
+.pcid_end:
+
+    ; don't need anything for DCA
+    ; SSE4.1 and 4.2 are already enabled
+    ; we'll want x2APIC but we want to enable that with the APIC
+    ; don't need to do anything for MOVBE or POPCNT
+    ; TSC-Deadline is an APIC thing, same as above
+    ; we've already enabled AESNI, if it's supported
+    ; XSAVE and OSXSAVE have already been set
+    ; we assume we have AVX
+    ; F16C is already enabled
+    ; RDRAND needs nothing
+    ; that's all for CPUID 1
 
     ret
 
@@ -258,4 +305,27 @@ set_intel_feature_control_msr:
 
     mov byte[msr_feature_control_set], 1 ; we've set the feature control MSR
 
+    ret
+
+
+global avx_check
+avx_check:
+    ; we need avx to use this system, if we don't have it, panic
+
+    mov eax, 1
+    cpuid
+
+    bt ecx, 28
+    jc .return
+
+    mov rbx, avx_not_detected
+    call strlen_slow ; the default strlen uses avx, which ofc we don't have
+    call terminal_write
+
+    cli
+.loop:
+    hlt
+    jmp .loop
+
+.return:
     ret
