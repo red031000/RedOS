@@ -12,6 +12,7 @@
 %include "multiboot.inc"
 %include "features.inc"
 %include "terminal.inc"
+%include "panic.inc"
 
 ; We are in protected mode here
 bits 32
@@ -94,8 +95,13 @@ _start_64:
     mov rbx, redos ; os identifier
     call terminal_print ; print os identifier
 
-    mov rbx, amogus ; amogus
-    call terminal_print ; print hello_world string
+    ;mov rbx, amogus ; amogus
+    ;call terminal_print ; print hello_world string
+
+    push test_panic
+
+    ; test panic
+    call panic
 
     ; infinite loop
     cli
@@ -119,3 +125,6 @@ amogus:
     db "......G.....U.....", 0xA
     db "......SA....MO....", 0xA
     db "When the OS is sus", 0xA, 0x0
+
+test_panic:
+    db "Test panic from boot.asm", 0x0

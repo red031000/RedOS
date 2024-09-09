@@ -1,1 +1,1 @@
-extern ConvertIntegerToHexString
+extern convert_int_to_hex_string

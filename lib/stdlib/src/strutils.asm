@@ -9,8 +9,8 @@ bits 64
 
 section .text
 
-global ConvertIntegerToHexString
-ConvertIntegerToHexString:
+global convert_int_to_hex_string
+convert_int_to_hex_string:
     ; in: rax = integer value
     ; out: xmm0 = hexadecimal value (big endian, for printing)
     bswap rax
