@@ -95,8 +95,8 @@ _start_64:
     mov rbx, redos ; os identifier
     call terminal_print ; print os identifier
 
-    ;mov rbx, amogus ; amogus
-    ;call terminal_print ; print hello_world string
+    mov rbx, amogus ; amogus
+    call terminal_print ; print hello_world string
 
     push test_panic
 

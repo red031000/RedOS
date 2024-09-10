@@ -44,11 +44,15 @@ space:
 panic_text:
     db "PANIC! ", 0
 
-section .data
+section .bss
 
 align 16
 register:
     resq 2
+
+global rip_replacement
+rip_replacement:
+    resq 1
 
 section .text
 
@@ -74,6 +78,16 @@ panic:
     push rcx
     push rbx
 
+    mov rsi, qword[rip_replacement]
+    test rsi, rsi
+    jz .no_rip
+
+    ; we want to replace rip in the stack frame with the value in rip_replacement
+    lea rdi, [rsp + 0x80]
+    mov qword[rdi], rsi
+
+    ; we calculate this now cause terminal_print steps on rax
+.no_rip:
     call convert_int_to_hex_string
     vmovdqa [register], xmm0
 

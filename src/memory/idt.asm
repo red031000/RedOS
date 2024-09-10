@@ -28,3 +28,20 @@ section .data
 idt_entry_start:
 global idt_entry_div_error
 idt_entry_div_error:
+    dw interrupt_div_error_handler
+    dw 0x0010 ; kernel code 64
+    db 0x00 ; no IST
+    db 0x8E ; interrupt gate, present, privlige level 0
+    dw 0 ; address 16:31
+    dd 0xFFFFFFFF ; higher bits
+    dd 0 ; reserved
+
+section .text
+
+global setup_idt
+setup_idt:
+    mov rax, interrupt_div_error_handler
+    shr rax, 16
+    mov word[idt_entry_div_error + 6], ax
+
+    ret
