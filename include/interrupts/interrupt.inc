@@ -1,0 +1,4 @@
+extern interrupt_div_error_handler
+extern interrupt_debug_handler
+extern interrupt_non_maskable_handler
+extern interrupt_breakpoint_handler

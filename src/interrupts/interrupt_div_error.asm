@@ -25,7 +25,6 @@ interrupt_div_error_handler:
     ; todo: userland
 
     ; we want rip to point to the instruction that cause the error
-
     push rbx
     lea rbx, [rsp + 0x10]
     mov qword[rip_replacement], rbx
