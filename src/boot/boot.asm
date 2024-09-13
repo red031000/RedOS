@@ -91,6 +91,7 @@ _start_64:
     call cpu_features_init
 
     ; TODO here: IDT
+    ; call setup_idt
 
     mov rbx, redos ; os identifier
     call terminal_print ; print os identifier

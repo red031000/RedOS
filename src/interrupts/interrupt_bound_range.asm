@@ -1,9 +1,9 @@
 ; -------------------------------------
-; interrupt_div_error.asm - Version 1.0
+; interrupt_bound_range.asm - Version 1.0
 ; Copyright (c) red031000 2024-08-25
 ; -------------------------------------
 
-; Division error interrupt handler
+; Bound range interrupt handler
 
 %include "panic.inc"
 
@@ -11,16 +11,16 @@ bits 64
 
 section .rodata
 
-div_error_text:
-    db "Interrupt: Division Error", 0x0
+bound_range_text:
+    db "Interrupt: Bound Range Exceeded", 0x0
 
 section .text
 
-global interrupt_div_error_handler
-interrupt_div_error_handler:
-    ; this is classified as a "fault" by the intel manual, however, an actual division error
-    ; (which is either a divide by zero, or too large to fit) in user space we want it to
-    ; close the program, but in kernel space we gotta panic
+global interrupt_bound_range_handler
+interrupt_bound_range_handler:
+    ; bound range exception occurs when the "bound" instruction indicates the array is out of range
+    ; this should be handled, probably be re-assigning the array etc, however we cannot do that yet
+    ; so we panic in kernel mode, should close the program in user mode
 
     ; todo: userland
 
@@ -34,7 +34,7 @@ interrupt_div_error_handler:
     push qword[rsp + 0x18]
     popfq
 
-    push div_error_text
+    push bound_range_text
 
     call panic
 

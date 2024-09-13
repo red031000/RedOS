@@ -5,7 +5,14 @@
 
 ; Non-maskable interrupt handler
 
+%include "panic.inc"
+
 bits 64
+
+section .rodata
+
+non_maskable_text:
+    db "Interrupt: Non-maskable", 0x0
 
 section .text
 
@@ -19,10 +26,10 @@ interrupt_non_maskable_handler:
     pop rbx
 
     ; we need to restore the flags
-    push [rsp + 0x18]
+    push qword[rsp + 0x18]
     popfq
 
-    push div_error_text
+    push non_maskable_text
 
     call panic
 

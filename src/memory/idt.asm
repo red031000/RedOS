@@ -29,7 +29,7 @@ section .data
 idt_entry_start:
 global idt_entry_div_error
 idt_entry_div_error:
-    dw interrupt_div_error_handler
+    dw 0 ; address 0:15
     dw 0x0010 ; kernel code 64
     db 0x00 ; no IST
     db 0x8E ; interrupt gate, present, privilege level 0
@@ -39,7 +39,7 @@ idt_entry_div_error:
 
 global idt_entry_debug
 idt_entry_debug:
-    dw interrupt_debug_handler
+    dw 0 ; address 0:15
     dw 0x0010 ; kernel code 64
     db 0x00 ; no IST
     db 0x8E ; interrupt gate, present, privilege level 0
@@ -49,7 +49,7 @@ idt_entry_debug:
 
 global idt_entry_non_maskable
 idt_entry_non_maskable:
-    dw interrupt_non_maskable_handler
+    dw 0 ; address 0:15
     dw 0x0010 ; kernel code 64
     db 0x00 ; no IST
     db 0x8E ; interrupt gate, present, privilege level 0
@@ -59,10 +59,30 @@ idt_entry_non_maskable:
 
 global idt_entry_breakpoint
 idt_entry_breakpoint:
-    dw interrupt_breakpoint_handler
+    dw 0 ; address 0:15
     dw 0x0010 ; kernel code 64
     db 0x00 ; no IST
     db 0x8F ; trap gate, present, privilege level 0
+    dw 0 ; address 16:31
+    dd 0xFFFFFFFF ; higher bits
+    dd 0 ; reserved
+
+global idt_entry_overflow
+idt_entry_overflow:
+    dw 0 ; address 0:15
+    dw 0x0010 ; kernel code 64
+    db 0x00 ; no IST
+    db 0x8F ; trap gate, present, privilege level 0
+    dw 0 ; address 16:31
+    dd 0xFFFFFFFF ; higher bits
+    dd 0 ; reserved
+
+global idt_entry_bound_range
+idt_entry_bound_range:
+    dw 0 ; address 0:15
+    dw 0x0010 ; kernel code 64
+    db 0x00 ; no IST
+    db 0x8E ; interrupt gate, present, privilege level 0
     dw 0 ; address 16:31
     dd 0xFFFFFFFF ; higher bits
     dd 0 ; reserved
@@ -72,19 +92,33 @@ section .text
 global setup_idt
 setup_idt:
     mov rax, interrupt_div_error_handler
+    mov word[idt_entry_div_error], ax
     shr rax, 16
     mov word[idt_entry_div_error + 6], ax
 
     mov rax, interrupt_debug_handler
+    mov word[idt_entry_debug], ax
     shr rax, 16
     mov word[idt_entry_debug + 6], ax
 
     mov rax, interrupt_non_maskable_handler
+    mov word[idt_entry_non_maskable], ax
     shr rax, 16
     mov word[idt_entry_non_maskable + 6], ax
 
     mov rax, interrupt_breakpoint_handler
+    mov word[idt_entry_breakpoint], ax
     shr rax, 16
     mov word[idt_entry_breakpoint + 6], ax
+
+    mov rax, interrupt_overflow_handler
+    mov word[idt_entry_overflow], ax
+    shr rax, 16
+    mov word[idt_entry_overflow + 6], ax
+
+    mov rax, interrupt_bound_range_handler
+    mov word[idt_entry_bound_range], ax
+    shr rax, 16
+    mov word[idt_entry_bound_range + 6], ax
 
     ret
