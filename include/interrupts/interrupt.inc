@@ -4,3 +4,5 @@ extern interrupt_non_maskable_handler
 extern interrupt_breakpoint_handler
 extern interrupt_overflow_handler
 extern interrupt_bound_range_handler
+extern interrupt_invalid_opcode_handler
+extern interrupt_device_not_available_handler
