@@ -11,7 +11,7 @@ bits 64
 
 section .rodata
 
-non_maskable_text:
+invalid_opcode_text:
     db "Interrupt: Invalid Opcode", 0x0
 
 section .text
@@ -31,7 +31,7 @@ interrupt_invalid_opcode_handler:
     push qword[rsp + 0x18]
     popfq
 
-    push non_maskable_text
+    push invalid_opcode_text
 
     call panic
 

@@ -3,7 +3,7 @@
 ; Copyright (c) red031000 2024-09-17
 ; -------------------------------------
 
-; Device not availablel interrupt handler
+; Device not available interrupt handler
 
 %include "panic.inc"
 
@@ -11,7 +11,7 @@ bits 64
 
 section .rodata
 
-non_maskable_text:
+device_not_available_text:
     db "Interrupt: Device Not Available", 0x0
 
 section .text
@@ -22,6 +22,7 @@ interrupt_device_not_available_handler:
     ; instruction is used without TS and EM in CR0
     ; This should never happen, if it does something in setup broke, so panic
     ; alternatively they were turned off, ideally then we want to look and see what turned it off
+    ; if EM is set, we should emulate the instruction instead
 
     ; todo userland
     push rbx
@@ -33,7 +34,7 @@ interrupt_device_not_available_handler:
     push qword[rsp + 0x18]
     popfq
 
-    push non_maskable_text
+    push device_not_available_text
 
     call panic
 
