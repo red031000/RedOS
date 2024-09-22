@@ -7,3 +7,5 @@ extern interrupt_bound_range_handler
 extern interrupt_invalid_opcode_handler
 extern interrupt_device_not_available_handler
 extern interrupt_double_fault_handler
+extern interrupt_coprocessor_segment_overrun_handler
+extern interrupt_invalid_tss_handler

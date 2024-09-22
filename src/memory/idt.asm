@@ -117,6 +117,26 @@ idt_entry_double_fault:
     dd 0xFFFFFFFF ; higher bits
     dd 0 ; reserved
 
+global idt_entry_coprocessor_segment_overrun
+idt_entry_coprocessor_segment_overrun:
+    dw 0 ; address 0:15
+    dw 0x0010 ; kernel code 64
+    db 0x00 ; no IST
+    db 0x8E ; interrupt gate, present, privilege level 0
+    dw 0 ; address 16:31
+    dd 0xFFFFFFFF ; higher bits
+    dd 0 ; reserved
+
+global idt_entry_invalid_tss
+idt_entry_invalid_tss:
+    dw 0 ; address 0:15
+    dw 0x0010 ; kernel code 64
+    db 0x00 ; no IST
+    db 0x8E ; interrupt gate, present, privilege level 0
+    dw 0 ; address 16:31
+    dd 0xFFFFFFFF ; higher bits
+    dd 0 ; reserved
+
 section .text
 
 global setup_idt
@@ -165,5 +185,15 @@ setup_idt:
     mov word[idt_entry_double_fault], ax
     shr rax, 16
     mov word[idt_entry_double_fault + 6], ax
+
+    mov rax, interrupt_coprocessor_segment_overrun_handler
+    mov word[idt_entry_coprocessor_segment_overrun], ax
+    shr rax, 16
+    mov word[idt_entry_coprocessor_segment_overrun + 6], ax
+
+    mov rax, interrupt_invalid_tss_handler
+    mov word[idt_entry_invalid_tss], ax
+    shr rax, 16
+    mov word[idt_entry_invalid_tss + 6], ax
 
     ret
