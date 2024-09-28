@@ -9,3 +9,4 @@ extern interrupt_device_not_available_handler
 extern interrupt_double_fault_handler
 extern interrupt_coprocessor_segment_overrun_handler
 extern interrupt_invalid_tss_handler
+extern interrupt_segment_not_present_handler

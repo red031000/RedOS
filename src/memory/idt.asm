@@ -137,6 +137,16 @@ idt_entry_invalid_tss:
     dd 0xFFFFFFFF ; higher bits
     dd 0 ; reserved
 
+global idt_entry_segment_not_present
+idt_entry_segment_not_present:
+    dw 0 ; address 0:15
+    dw 0x0010 ; kernel code 64
+    db 0x00 ; no IST
+    db 0x8E ; interrupt gate, present, privilege level 0
+    dw 0 ; address 16:31
+    dd 0xFFFFFFFF ; higher bits
+    dd 0 ; reserved
+
 section .text
 
 global setup_idt
@@ -195,5 +205,10 @@ setup_idt:
     mov word[idt_entry_invalid_tss], ax
     shr rax, 16
     mov word[idt_entry_invalid_tss + 6], ax
+
+    mov rax, interrupt_segment_not_present_handler
+    mov word[idt_entry_segment_not_present], ax
+    shr rax, 16
+    mov word[idt_entry_segment_not_present + 6], ax
 
     ret
