@@ -157,6 +157,26 @@ idt_entry_stack_fault:
     dd 0xFFFFFFFF ; higher bits
     dd 0 ; reserved
 
+global idt_entry_general_protection
+idt_entry_general_protection:
+    dw 0 ; address 0:15
+    dw 0x0010 ; kernel code 64
+    db 0x00 ; no IST
+    db 0x8E ; interrupt gate, present, privilege level 0
+    dw 0 ; address 16:31
+    dd 0xFFFFFFFF ; higher bits
+    dd 0 ; reserved
+
+    global idt_entry_page_fault
+idt_entry_page_fault:
+    dw 0 ; address 0:15
+    dw 0x0010 ; kernel code 64
+    db 0x00 ; no IST
+    db 0x8E ; interrupt gate, present, privilege level 0
+    dw 0 ; address 16:31
+    dd 0xFFFFFFFF ; higher bits
+    dd 0 ; reserved
+
 section .text
 
 global setup_idt
@@ -225,5 +245,15 @@ setup_idt:
     mov word[idt_entry_stack_fault], ax
     shr rax, 16
     mov word[idt_entry_stack_fault + 6], ax
+
+    mov rax, interrupt_general_protection_handler
+    mov word[idt_entry_general_protection], ax
+    shr rax, 16
+    mov word[idt_entry_general_protection + 6], ax
+
+    mov rax, interrupt_page_fault_handler
+    mov word[idt_entry_page_fault], ax
+    shr rax, 16
+    mov word[idt_entry_page_fault + 6], ax
 
     ret
