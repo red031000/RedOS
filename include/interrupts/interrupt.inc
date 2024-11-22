@@ -13,3 +13,6 @@ extern interrupt_segment_not_present_handler
 extern interrupt_stack_fault_handler
 extern interrupt_general_protection_handler
 extern interrupt_page_fault_handler
+extern interrupt_floating_point_error_handler
+extern interrupt_alignment_check_handler
+extern interrupt_machine_check_handler
