@@ -1,9 +1,9 @@
 ; -------------------------------------
-; interrupt_floating_point_error.asm - Version 1.0
+; interrupt_simd_floating_point_error.asm - Version 1.0
 ; Copyright (c) red031000 2024-11-22
 ; -------------------------------------
 
-; Floating point error interrupt handler
+; simd floating point error interrupt handler
 
 %include "panic.inc"
 
@@ -11,14 +11,14 @@ bits 64
 
 section .rodata
 
-floating_point_error_text:
-    db "Interrupt: x87 FPU Floating-Point Error", 0x0
+simd_floating_point_error_text:
+    db "Interrupt: SIMD Floating-Point Error", 0x0
 
 section .text
 
-global interrupt_floating_point_error_handler
-interrupt_floating_point_error_handler:
-    ; Floating point errors occur when an invalid operation or invalid operands are used. They can also
+global interrupt_simd_floating_point_error_handler
+interrupt_simd_floating_point_error_handler:
+    ; simd floating point errors occur when an invalid operation or invalid operands are used. They can also
     ; occur if the result is not exact, or an overflow/underflow has occurred. This *may* be recoverable
     ; however, for now, panic.
 
@@ -31,7 +31,7 @@ interrupt_floating_point_error_handler:
     push qword[rsp + 0x18]
     popfq
 
-    push floating_point_error_text
+    push simd_floating_point_error_text
 
     call panic
 

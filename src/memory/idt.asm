@@ -177,8 +177,8 @@ idt_entry_page_fault:
     dd 0xFFFFFFFF ; higher bits
     dd 0 ; reserved
 
-    global idt_entry_floating_point_error
-idt_entry_floating_point_error:
+    global idt_entry_x87_floating_point_error
+idt_entry_x87_floating_point_error:
     dw 0 ; address 0:15
     dw 0x0010 ; kernel code 64
     db 0x00 ; no IST
@@ -199,6 +199,26 @@ idt_entry_alignment_check:
 
     global idt_entry_machine_check
 idt_entry_machine_check:
+    dw 0 ; address 0:15
+    dw 0x0010 ; kernel code 64
+    db 0x00 ; no IST
+    db 0x8E ; interrupt gate, present, privilege level 0
+    dw 0 ; address 16:31
+    dd 0xFFFFFFFF ; higher bits
+    dd 0 ; reserved
+
+    global idt_entry_simd_floating_point_error
+idt_entry_simd_floating_point_error:
+    dw 0 ; address 0:15
+    dw 0x0010 ; kernel code 64
+    db 0x00 ; no IST
+    db 0x8E ; interrupt gate, present, privilege level 0
+    dw 0 ; address 16:31
+    dd 0xFFFFFFFF ; higher bits
+    dd 0 ; reserved
+
+    global idt_entry_virtualisation_exception
+idt_entry_virtualisation_exception:
     dw 0 ; address 0:15
     dw 0x0010 ; kernel code 64
     db 0x00 ; no IST
@@ -286,10 +306,10 @@ setup_idt:
     shr rax, 16
     mov word[idt_entry_page_fault + 6], ax
 
-    mov rax, interrupt_floating_point_error_handler
-    mov word[idt_entry_floating_point_error], ax
+    mov rax, interrupt_x87_floating_point_error_handler
+    mov word[idt_entry_x87_floating_point_error], ax
     shr rax, 16
-    mov word[idt_entry_floating_point_error + 6], ax
+    mov word[idt_entry_x87_floating_point_error + 6], ax
 
     mov rax, interrupt_alignment_check_handler
     mov word[idt_entry_alignment_check], ax
@@ -300,5 +320,15 @@ setup_idt:
     mov word[idt_entry_machine_check], ax
     shr rax, 16
     mov word[idt_entry_machine_check + 6], ax
+
+    mov rax, interrupt_simd_floating_point_error_handler
+    mov word[idt_entry_simd_floating_point_error], ax
+    shr rax, 16
+    mov word[idt_entry_simd_floating_point_error + 6], ax
+
+    mov rax, interrupt_virtualisation_exception_handler
+    mov word[idt_entry_virtualisation_exception], ax
+    shr rax, 16
+    mov word[idt_entry_virtualisation_exception + 6], ax
 
     ret
