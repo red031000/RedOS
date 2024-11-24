@@ -18,3 +18,4 @@ extern interrupt_alignment_check_handler
 extern interrupt_machine_check_handler
 extern interrupt_simd_floating_point_error_handler
 extern interrupt_virtualisation_exception_handler
+extern interrupt_control_protection_handler
