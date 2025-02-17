@@ -13,6 +13,7 @@
 %include "features.inc"
 %include "terminal.inc"
 %include "panic.inc"
+%include "idt.inc"
 
 ; We are in protected mode here
 bits 32
@@ -90,19 +91,20 @@ _start_64:
     ; init CPU features
     call cpu_features_init
 
-    ; TODO here: IDT
-    ; call setup_idt
+    ; setup idt
+    call setup_idt
 
     mov rbx, redos ; os identifier
     call terminal_print ; print os identifier
 
     mov rbx, amogus ; amogus
-    call terminal_print ; print hello_world string
+    call terminal_print ; print amogus string
 
-    push test_panic
-
-    ; test panic
-    call panic
+    ; test division error
+    mov eax, 1
+    xor edx, edx
+    xor ebx, ebx
+    div ebx
 
     ; infinite loop
     cli
@@ -126,6 +128,3 @@ amogus:
     db "......G.....U.....", 0xA
     db "......SA....MO....", 0xA
     db "When the OS is sus", 0xA, 0x0
-
-test_panic:
-    db "Test panic from boot.asm", 0x0

@@ -1,0 +1,1 @@
+extern setup_idt

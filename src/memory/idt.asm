@@ -25,6 +25,7 @@ bits 64
 
 section .data
 
+align 8
 idt_entry_start:
 global idt_entry_div_error
 idt_entry_div_error:
@@ -236,6 +237,16 @@ idt_entry_control_protection:
     dd 0xFFFFFFFF ; higher bits
     dd 0 ; reserved
 
+; there are more exceptions here, however, 
+idt_entry_end:
+
+IDT_SIZE EQU idt_entry_end - idt_entry_start - 1
+
+global idtr
+idtr:
+    dw IDT_SIZE
+    dq idt_entry_start
+
 section .text
 
 global setup_idt
@@ -344,5 +355,8 @@ setup_idt:
     mov word[idt_entry_control_protection], ax
     shr rax, 16
     mov word[idt_entry_control_protection + 6], ax
+
+    lidt [idtr]
+    sti
 
     ret
