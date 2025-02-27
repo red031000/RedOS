@@ -25,6 +25,7 @@ interrupt_general_protection_handler:
 
     push rbx
     lea rbx, [rsp + 0x10]
+    mov rbx, qword[rbx]
     mov qword[rip_replacement], rbx
     pop rbx
 

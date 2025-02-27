@@ -14,6 +14,7 @@
 %include "terminal.inc"
 %include "panic.inc"
 %include "idt.inc"
+%include "strutils.inc"
 
 ; We are in protected mode here
 bits 32
@@ -100,11 +101,16 @@ _start_64:
     mov rbx, amogus ; amogus
     call terminal_print ; print amogus string
 
-    ; test division error
-    mov eax, 1
-    xor edx, edx
-    xor ebx, ebx
-    div ebx
+    mov rbx, memmap_string
+    call terminal_print
+
+    call multiboot_get_memmap
+    call convert_int_to_hex_string
+    vmovdqa [mmap_amount_string], xmm0
+
+    mov rbx, mmap_amount_string
+    mov eax, 16
+    call terminal_write
 
     ; infinite loop
     cli
@@ -113,8 +119,9 @@ _start_64:
     jmp .loop
 
 section .rodata
-hello_world:
-;    db "Hello, world!", 0xA, 0
+
+memmap_string:
+    db "Amount of available memory in mmap: ", 0x0
 
 redos:
     db "====================================RedOS v1====================================", 0xA, 0x0
@@ -128,3 +135,9 @@ amogus:
     db "......G.....U.....", 0xA
     db "......SA....MO....", 0xA
     db "When the OS is sus", 0xA, 0x0
+
+section .data
+
+align 16
+mmap_amount_string:
+    resq 2

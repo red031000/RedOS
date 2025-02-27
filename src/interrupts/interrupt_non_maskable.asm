@@ -22,6 +22,7 @@ interrupt_non_maskable_handler:
     ; we want rip to point to the instruction that cause the error
     push rbx
     lea rbx, [rsp + 0x10]
+    mov rbx, qword[rbx]
     mov qword[rip_replacement], rbx
     pop rbx
 

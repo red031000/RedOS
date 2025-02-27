@@ -139,19 +139,19 @@ section .text
 global paging_higher_setup
 paging_higher_setup:
     ; we need to do what we weren't able to in protected mode first - set everything to R/W
-    mov rcx, 510
+    mov ecx, 510
     mov rdi, VIRT64_TO_PHYS(first_page_directory) + 16
-    mov rax, 0x2
+    mov eax, 0x2
     rep stosq
 
-    mov rcx, 511
+    mov ecx, 511
     mov rdi, VIRT64_TO_PHYS(first_page_directory_pointer_table) + 8
-    mov rax, 0x2
+    mov eax, 0x2
     rep stosq
 
-    mov rcx, 511
+    mov ecx, 511
     mov rdi, VIRT64_TO_PHYS(page_map_level_4) + 8
-    mov rax, 0x2
+    mov eax, 0x2
     rep stosq
 
     ; we need to map the kernel to the higher half

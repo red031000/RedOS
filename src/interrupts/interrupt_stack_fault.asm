@@ -27,6 +27,7 @@ interrupt_stack_fault_handler:
     ; TODO: implement realloc to recover
     push rbx
     lea rbx, [rsp + 0x10]
+    mov rbx, qword[rbx]
     mov qword[rip_replacement], rbx
     pop rbx
 
