@@ -118,27 +118,18 @@ _loop:
 
     ; sizes do not include padding, so to accurately get the address of the next tag, we need to pad to 8
     ; ourselves
-    bsf edx, ecx
-    cmp edx, 3
-    jg _no_pad
-    
-    ; there's probably a better way to do this
-    shr ecx, 3
-    shl ecx, 3
-    add ecx, 8
+    dec ecx
+    or ecx, 7
+    inc ecx
 
-_no_pad:
     add rsi, rcx
     jmp _loop
 
 _found:
-    mov eax, ecx
-    xor edx, edx
-    mov ecx, 24
-    div ecx
-    mov ecx, eax
-    mov edx, eax
     xor eax, eax
+    imul rcx, 0xaaaaaaab
+    shr rcx, 36
+    mov edx, ecx
     lea rdi, [rsi + 16]
 
 _loop2:
