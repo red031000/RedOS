@@ -100,21 +100,20 @@ section .text
 
 bits 64
 
-global multiboot_get_memmap
-multiboot_get_memmap:
-    ; gets the multiboot memmap info
+multiboot_find_memmap:
+    ; find the memmap in the multiboot 2 info
     ; returns:
-    ; rsi - address of mmap tag (mmap starts at rsi + 16)
-    ; rax - amount of available memory total
-    ; rcx - number of mmap entries
+    ; rsi - address of the mmap header
+    ; rcx - size of the mmap header
     mov rsi, PHYS_TO_VIRT64(multiboot_info + 8)
-_loop:
-    mov ebx, dword[rsi]
-    mov ecx, dword[rsi + 4]
+.loop:
+    mov rbx, qword[rsi]
+    mov ecx, ebx
+    shr rbx, 32
     cmp ebx, 6
-    je _found
-    cmp ebx, 0
-    je _not_found
+    je .end
+    test ebx, ebx
+    jz .not_found
 
     ; sizes do not include padding, so to accurately get the address of the next tag, we need to pad to 8
     ; ourselves
@@ -123,32 +122,74 @@ _loop:
     inc ecx
 
     add rsi, rcx
-    jmp _loop
+    jmp .loop
 
-_found:
-    xor eax, eax
-    imul rcx, 0xaaaaaaab
+.not_found:
+    ; no mem info, panic
+    push memmap_not_found
+    jmp panic
+
+.end:
+    ret
+
+global multiboot_fix_memmap
+multiboot_fix_memmap:
+    ; WIP: do not use yet
+    ; fixes the multiboot memmap to be page aligned
+    call multiboot_find_memmap
+    mov eax, 0xaaaaaaab
+    imul rcx, rax
     shr rcx, 36
+    lea rdi, [rsi + 16]
+
+    xor eax, eax
+    xor r10, r10
+
+.loop:
+    mov ebx, dword[rdi + 16]
+    mov r8, qword[rdi + 8]
+    cmp ebx, 1
+    jne .occupied
+
+    cmp r10, 1
+
+
+.occupied:
+
+
+    ret
+
+global multiboot_get_memmap
+multiboot_get_memmap:
+    ; gets the multiboot memmap info
+    ; returns:
+    ; rsi - address of mmap tag (mmap starts at rsi + 16)
+    ; rax - amount of available memory total
+    ; rcx - number of mmap entries
+    ; r9 - amount of total memory
+    call multiboot_find_memmap
+
+    xor r9, r9
+    mov eax, 0xaaaaaaab
+    imul rcx, rax
+    shr rcx, 36
+    xor eax, eax
     mov edx, ecx
     lea rdi, [rsi + 16]
 
-_loop2:
+.loop:
     mov ebx, dword[rdi + 16]
-    cmp ebx, 1
-    jne _not_available
     mov r8, qword[rdi + 8]
+    add r9, r8
+    cmp ebx, 1
+    jne .not_available
     add rax, r8
 
-_not_available:
+.not_available:
     add rdi, 24
     dec edx
-    jnz _loop2
+    jnz .loop
     ret
-
-_not_found:
-    ; no mem info, panic
-    push memmap_not_found
-    call panic
 
 section .rodata
 
