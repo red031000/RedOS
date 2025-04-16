@@ -142,20 +142,66 @@ multiboot_fix_memmap:
     shr rcx, 36
     lea rdi, [rsi + 16]
 
-    xor eax, eax
-    xor r10, r10
+    xor r10, r10 ; check if 
+    xor r9, r9 ; counter
 
 .loop:
     mov ebx, dword[rdi + 16]
     mov r8, qword[rdi + 8]
+    mov rdx, qword[rdi]
     cmp ebx, 1
     jne .occupied
 
+    ; base address align to next 4096
     cmp r10, 1
+    jne .noalign
 
+    xor r10, r10
+
+    mov rax, rdx
+    neg rax
+    and rax, 4095
+    add rdx, rax
+
+    ; save new base address
+    mov qword[rdi], rdx
+    
+    ; subtract difference in size and save
+    sub r8, rax
+    mov qword[rdi + 8], r8
+
+    test r9, r9
+    jz .noalign
+
+    ; adjust the size of the previous entry to go up to the new base address
+    add qword[rdi - 16], rax
+    jmp .noalign
 
 .occupied:
+    ; two stages - check if base addres is aligned to 4096, if not then adjust previous entry (if it's free)
+    ; then check if length is 4096 aligned, if not then set r10 to signify an alignment in the next entry
 
+    mov rax, rdx
+    and rax, 4095
+    test rax, rax
+    jz .check_1_bypass
+
+    ; TODO: check if this works
+    ; round down
+    mov rax, rdx
+    neg rax
+    mov r11, -0xFFF
+    and rax, r11
+    add rdx, rax
+
+
+.check_1_bypass:
+
+.noalign:
+    add rdi, 24
+    inc r9
+    dec ecx
+    jnz .loop
 
     ret
 
