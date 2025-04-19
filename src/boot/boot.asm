@@ -95,6 +95,9 @@ _start_64:
     ; setup idt
     call setup_idt
 
+    ; fix multiboot mmap
+    call multiboot_fix_memmap
+
     mov rbx, redos ; os identifier
     call terminal_print ; print os identifier
 

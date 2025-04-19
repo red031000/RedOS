@@ -134,7 +134,6 @@ multiboot_find_memmap:
 
 global multiboot_fix_memmap
 multiboot_fix_memmap:
-    ; WIP: do not use yet
     ; fixes the multiboot memmap to be page aligned
     call multiboot_find_memmap
     mov eax, 0xaaaaaaab
@@ -142,7 +141,7 @@ multiboot_fix_memmap:
     shr rcx, 36
     lea rdi, [rsi + 16]
 
-    xor r10, r10 ; check if 
+    xor r10, r10 ; check if alignment needed
     xor r9, r9 ; counter
 
 .loop:
@@ -160,7 +159,7 @@ multiboot_fix_memmap:
 
     mov rax, rdx
     neg rax
-    and rax, 4095
+    and eax, 4095
     add rdx, rax
 
     ; save new base address
@@ -168,6 +167,9 @@ multiboot_fix_memmap:
     
     ; subtract difference in size and save
     sub r8, rax
+    jnc .positive
+    xor r8, r8
+.positive:
     mov qword[rdi + 8], r8
 
     test r9, r9
@@ -180,22 +182,52 @@ multiboot_fix_memmap:
 .occupied:
     ; two stages - check if base addres is aligned to 4096, if not then adjust previous entry (if it's free)
     ; then check if length is 4096 aligned, if not then set r10 to signify an alignment in the next entry
-
     mov rax, rdx
-    and rax, 4095
-    test rax, rax
+    and eax, 4095
+    test eax, eax
     jz .check_1_bypass
 
-    ; TODO: check if this works
-    ; round down
-    mov rax, rdx
-    neg rax
-    mov r11, -0xFFF
-    and rax, r11
-    add rdx, rax
+    ; check if previous entry is free
 
+    ; in theory this should not trigger on first entry, first entry should be 0, but check for sanity incase
+    test r9, r9
+    jz .check_1_first_entry
+
+    mov eax, dword[rdi - 8]
+    cmp eax, 1
+    jne .check_1_bypass
+
+.check_1_first_entry:
+    ; round down
+    mov eax, 0xfff
+    and rax, rdx
+    and rdx, -0x1000
+
+    ; save base address
+    mov qword[rdi], rdx
+
+    ; add size difference
+    add r8, rax
+    mov qword[rdi + 8], r8
+
+    test r9, r9
+    jz .check_1_bypass
+
+    ; adjust previous entry
+    sub qword[rdi - 16], rax
 
 .check_1_bypass:
+    ; clear old r10s so this is not applied on next loop
+    xor r10, r10
+
+    mov rax, r8
+    and eax, 4095
+    test eax, eax
+    jz .noalign
+
+    ; length will be adjusted next entry, this is done to ensure that length is not set to higher than
+    ; memory available
+    mov r10, 1
 
 .noalign:
     add rdi, 24

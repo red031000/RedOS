@@ -1,3 +1,4 @@
 extern multiboot_store_info
 extern multiboot_check_magic
+extern multiboot_fix_memmap
 extern multiboot_get_memmap
