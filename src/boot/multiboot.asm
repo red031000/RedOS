@@ -145,10 +145,9 @@ multiboot_fix_memmap:
     xor r9, r9 ; counter
 
 .loop:
-    mov ebx, dword[rdi + 16]
     mov r8, qword[rdi + 8]
     mov rdx, qword[rdi]
-    cmp ebx, 1
+    cmp dword[rdi + 16], 1
     jne .occupied
 
     ; base address align to next 4096
@@ -180,7 +179,7 @@ multiboot_fix_memmap:
     jmp .noalign
 
 .occupied:
-    ; two stages - check if base addres is aligned to 4096, if not then adjust previous entry (if it's free)
+    ; two stages - check if base address is aligned to 4096, if not then adjust previous entry (if it's free)
     ; then check if length is 4096 aligned, if not then set r10 to signify an alignment in the next entry
     mov rax, rdx
     and eax, 4095
@@ -193,8 +192,7 @@ multiboot_fix_memmap:
     test r9, r9
     jz .check_1_first_entry
 
-    mov eax, dword[rdi - 8]
-    cmp eax, 1
+    cmp dword[rdi - 8], 1
     jne .check_1_bypass
 
 .check_1_first_entry:
@@ -256,10 +254,9 @@ multiboot_get_memmap:
     lea rdi, [rsi + 16]
 
 .loop:
-    mov ebx, dword[rdi + 16]
     mov r8, qword[rdi + 8]
     add r9, r8
-    cmp ebx, 1
+    cmp dword[rdi + 16], 1
     jne .not_available
     add rax, r8
 
