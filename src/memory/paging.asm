@@ -138,6 +138,7 @@ section .text
 
 global paging_higher_setup
 paging_higher_setup:
+    ; TODO: init static buddy page tables here as well
     ; we need to do what we weren't able to in protected mode first - set everything to R/W
     mov ecx, 510
     mov rdi, VIRT64_TO_PHYS(first_page_directory) + 16

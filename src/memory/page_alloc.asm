@@ -14,7 +14,26 @@
 ;     u8 flags;
 ; }
 
+; struct buddy {
+;     u64 memory_size;
+;     u64 alignment;
+;     union {
+;         u8 *main;
+;         u64 main_offset;
+;     } arena;
+;     u64 buddy_flags;
+; }
+
 bits 64
+
+section .bss
+
+align 4096
+buddy_page_directory:
+    resq 512
+
+buddy_page_table:
+    resq 1
 
 section .text
 
@@ -55,7 +74,7 @@ buddy_calculate_size:
     and r9, 7
     inc r9
 
-    ; account for "memoization?" (not sure why this is necessary but doing it anyway)
+    ; account for memoization (caching)
     add r12, 2
     shl r12, 3
     add r9, r12
@@ -63,6 +82,41 @@ buddy_calculate_size:
     ; add the size of the buddy struct, and the tree struct
     add r9, 50
 
-    ; TODO: calculate the additional size required for the page table entries
+    ; TODO: check if this is correct
+    ; static pages in the OS are 2MB large, however dynamic pages are 4KB
+    ; this means we need a new page directory, defined above
+    ; we also have 1 page table already assigned in the static area, account for this
+    lea r10, [r9 - 1]
+    shr r10, 12
+
+    mov r11, r10
+
+    xor r12, r12
+    cmp r11, 511
+    jl .no_directory
+
+    ; at least 1 extra directory needed
+    mov r12, 8
+    sub r10, 511
+
+    cmp r10, 512
+    jl .no_directory
+
+    ; loop to add directories
+.loop2:
+    add r12, 8
+    sub r10, 512
+
+    cmp r10, 512
+    jge .loop2
+
+.no_directory:
+    ; this can handle up to 4tb fine, anything more needs adjustment, a new page for the directories, and an L3 entry
+    shl r11, 3
+
+    add r9, r12
+
+    ; TODO: check, this might throw a PF, might need an extra page at the end if r9 & 0xFFF + r11 & 0xFFF > 4096
+    add r9, r11
 
     ret
