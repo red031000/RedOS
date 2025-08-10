@@ -1,3 +1,5 @@
 extern paging_init_long
 extern paging_higher_setup
 extern unmap_lower_half
+extern add_page_to_directory
+extern add_directory_to_pointer_table

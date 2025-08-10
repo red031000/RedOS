@@ -182,3 +182,36 @@ unmap_lower_half:
     mov rcx, VIRT64_TO_PHYS(page_map_level_4)
     mov cr3, rcx
     ret
+
+global add_page_to_directory
+add_page_to_directory:
+    ; rax - page directory address
+    ; rbx - page table entry address
+    ; rcx - page directory index
+    ; rsi - user/supervisor mode
+    push rdx
+    mov rdx, rax
+    lea rdx, [rdx + rcx * 8]
+    mov qword[rdx], rbx
+    and esi, 1
+    lea esi, [0x203 + 4 * esi]
+    or word[rdx], si ; alloced, present, read/write
+    pop rdx
+    ret
+
+global add_directory_to_pointer_table
+add_directory_to_pointer_table:
+    ; rax - pointer table address
+    ; rbx - page directory address
+    ; rcx - pointer table index
+    ; rsi - user/supervisor mode
+    push rdx
+    mov rdx, rax
+    lea rdx, [rdx + rcx * 8]
+    mov qword[rdx], rbx
+    and esi, 1
+    lea esi, [0x43 + 4 * esi]
+    or byte[rdx], sil ; alloced, present, read/write
+    pop rdx
+    ret
+
