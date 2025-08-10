@@ -95,10 +95,22 @@ bits 32
 
 section .boot.text exec
 
+global zero_page_table
+zero_page_table:
+    mov ecx, 3072
+    xor eax, eax
+    mov edi, VIRT64_TO_PHYS(page_map_level_4)
+    rep stosd ; the bss for the page table entries should be one after the other, so we can clear them all at once
+    ret
+
 global paging_init_long
 paging_init_long:
     ; set up paging for long mode
-    ; first enable PGE
+
+    ; first, clear the page table entirely
+    call zero_page_table
+
+    ; then enable PGE
     mov eax, cr4
     or eax, 0x20 ; set PGE bit
     mov cr4, eax
